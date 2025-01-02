@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD Table</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #0a0a0a;
+      color: #dcdcdc;
+    }
+
+    h2 {
+      text-align: center;
+      color: #ffffff;
+    }
+
+    .crud-container {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .form-container input{
+      width: 250px;
+      margin: 8px 0;
+      padding: 12px;
+      border: 1px solid #444;
+      border-radius: 5px;
+      font-size: 14px;
+      background-color: #222;
+      color: #f1f1f1;
+    }
+    .form-container button {
+      width: 250px;
+      margin: 8px 0;
+      padding: 12px;
+      border: 1px solid #444;
+      border-radius: 5px;
+      font-size: 14px;
+      background-color: #222;
+      color: #f1f1f1;
+    }
+    .form-container button {
+      background-color: #00796b;
+      color: white;
+      cursor: pointer;
+    }
+
+    .form-container button:hover {
+      background-color: #004d40;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #333;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    }
+
+    table, th, td {
+      border: 1px solid #555;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #121212;
+      color: #ffffff;
+    }
+
+    button {
+      padding: 6px 12px;
+      border: none;
+      background-color: #d32f2f;
+      color: white;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    button:hover {
+      background-color: #c62828;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+    }
+
+    .modal-content {
+      background-color: #222;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #444;
+      width: 40%;
+      border-radius: 5px;
+    }
+
+    .modal-header {
+      text-align: center;
+      color: #ffffff;
+    }
+
+    .modal-footer {
+      text-align: center;
+    }
+
+    .modal button {
+      padding: 10px 15px;
+      margin: 5px;
+      background-color: #00796b;
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #444;
+      border-radius: 5px;
+      background-color: #333;
+      color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>CRUD Table</h2>
+
+  <div class="crud-container">
+    <div class="form-container">
+      <input type="text" id="first_name" placeholder="First Name" required>
+      <input type="text" id="last_name" placeholder="Last Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="number" id="age" placeholder="Age" required>
+      <input type="password" id="password" placeholder="Enter your password" required>
+      <input type="text" id="city" placeholder="City" required>
+      <button onclick="addRow()">Submit</button>
+    </div>
+  </div>
+
+  <div id="Make-table"></div>
+
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit</h3>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="edit_first_name" placeholder="First Name" required>
+        <input type="text" id="edit_last_name" placeholder="Last Name" required>
+        <input type="email" id="edit_email" placeholder="Email" required>
+        <input type="number" id="edit_age" placeholder="Age" required>
+        <input type="password" id="edit_password" placeholder="Enter your password" required>
+        <input type="text" id="edit_city" placeholder="City" required>
+      </div>
+      <div class="modal-footer">
+        <button onclick="updateRow()">Update</button>
+        <button onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Are you sure you want to delete?</h3>
+      </div>
+      <div class="modal-footer">
+        <button onclick="confirmDelete()">Ok, Delete</button>
+        <button onclick="closeDeleteModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let data = [];
+    let editIndex = -1;
+    let deleteIndex = -1;
+
+    function renderTable() {
+      const tablediv = document.getElementById('Make-table');
+      tablediv.innerHTML = '';
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      headRow.innerHTML = `
+        <th>Id</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Age</th>
+        <th>Password</th>
+        <th>City</th>
+        <th>Actions</th>
+      `;
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${item.first_name}</td>
+          <td>${item.last_name}</td>
+          <td>${item.email}</td>
+          <td>${item.age}</td>
+          <td>${item.password}</td>
+          <td>${item.city}</td>
+          <td>
+            <button onclick="editRow(${index})">Edit</button>
+            <button onclick="openDeleteModal(${index})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      tablediv.appendChild(table);
+    }
+
+    function addRow() {
+      const first_name = document.getElementById('first_name').value;
+      const last_name = document.getElementById('last_name').value;
+      const email = document.getElementById('email').value;
+      const age = document.getElementById('age').value;
+      const password = document.getElementById('password').value;
+      const city = document.getElementById('city').value;
+
+      if (first_name && last_name && email && age && password && city) {
+        if (editIndex === -1) {
+          data.push({ first_name, last_name, email, age, password, city });
+        } else {
+          data[editIndex] = { first_name, last_name, email, age, password, city };
+          editIndex = -1;
+        }
+
+        document.getElementById('first_name').value = '';
+        document.getElementById('last_name').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('age').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('city').value = '';
+
+        renderTable();
+        closeModal();
+      } else {
+        alert('Please fill in all fields!');
+      }
+    }
+
+    function editRow(index) {
+      const item = data[index];
+      editIndex = index;
+      document.getElementById('edit_first_name').value = item.first_name;
+      document.getElementById('edit_last_name').value = item.last_name;
+      document.getElementById('edit_email').value = item.email;
+      document.getElementById('edit_age').value = item.age;
+      document.getElementById('edit_password').value = item.password;
+      document.getElementById('edit_city').value = item.city;
+      document.getElementById('editModal').style.display = 'block';
+    }
+
+    function updateRow() {
+      const first_name = document.getElementById('edit_first_name').value;
+      const last_name = document.getElementById('edit_last_name').value;
+      const email = document.getElementById('edit_email').value;
+      const age = document.getElementById('edit_age').value;
+      const password = document.getElementById('edit_password').value;
+      const city = document.getElementById('edit_city').value;
+
+      if (first_name && last_name && email && age && password && city) {
+        data[editIndex] = { first_name, last_name, email, age, password, city };
+        editIndex = -1;
+        renderTable();
+        closeModal();
+      } else {
+        alert('Please fill in all fields!');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function openDeleteModal(index) {
+      deleteIndex = index;
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function confirmDelete() {
+      data.splice(deleteIndex, 1);
+      deleteIndex = -1;
+      renderTable();
+      closeDeleteModal();
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    renderTable();
+  </script>
+
+</body>
+</html>
